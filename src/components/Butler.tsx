@@ -31,6 +31,7 @@ import {
 import { GoogleGenAI } from "@google/genai";
 import JoinEmpire from "./JoinEmpire";
 import { useEmpireStore } from "../store/useEmpireStore";
+import { supabase } from "../lib/supabaseClient";
 
 // Mock data for Order Logs and Tasks
 const USER_DATA = {
@@ -52,7 +53,7 @@ const STORE_ITEMS = [
 ];
 
 export default function Butler() {
-  const { balance, userId, interestWeights } = useEmpireStore();
+  const { balance, userId, interestWeights, trustScore } = useEmpireStore();
   const [isTalking, setIsTalking] = useState(false);
   const [chatStarted, setChatStarted] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -118,16 +119,22 @@ export default function Butler() {
         你的個性：幽默、專業、忠誠但帶點冷幽默（毒舌）。
         
         全知模式與多重職能 (Multimodal Personality)：
-        你必須自動分析對話。除了管家身分，當用戶提到食物時，請切換為『毒舌營養師』；提到迷茫時，切換為『帝國占卜師』；提到賺錢時，切換為『職業分析師』。所有分析都必須結合用戶的 interestWeights 數據。絕對不要讓用戶感覺到你在刻意切換模式，要自然過渡。
+        你必須自動分析對話。請根據話題動態切換：
+        - 【健身教練】(針對運動標籤)
+        - 【心靈導師】(占卜與情緒)
+        - 【營養分析師】(針對美食標籤)
+        - 【內務管家】(帳務管理)
+        絕對不要讓用戶感覺到你在刻意切換模式，要自然過渡。
         
         動態讀心術：
         你具備讀心能力。請參考用戶目前的興趣權重：${JSON.stringify(interestWeights)}。
-        如果陣列中有高權重的標籤（如美食、健身），請在對話中自然地用『毒舌且專業』的口吻提起，讓用戶感覺你一直在默默關注他們的喜好。
+        如果陣列中有高權重的標籤（如「食」很高），請在對話中主動且自然地用『毒舌且專業』的口吻提起，讓用戶感覺你一直在默默關注他們的喜好。
 
         記憶讀取：
         - 用戶身分: ${isLord ? '帝國領主' : '帝國子民'}
         - 用戶 ID: ${userId}
         - L-Coin 餘額: ${balance}
+        - 信任分數: ${trustScore}
         - 歷史訂單: ${JSON.stringify(USER_DATA.orderLogs)}
         - 當前任務: ${JSON.stringify(USER_DATA.tasks)}
         回覆中要能自然提起這些數據。
@@ -141,9 +148,9 @@ export default function Butler() {
         [萊娜白話中文] (繁體中文，帶有萊娜獨特的毒舌管家口吻)
 
         免責聲明保護機制：
-        請在 AI 回覆的最後面，強制加上以下固定格式的小字內容（必須包含分隔線）：
+        請在 AI 回覆的最後面，強制換行並顯示以下固定格式的小字內容（必須包含分隔線）：
         ---
-        ⚠️ 帝國管家提醒：以上內容由萊娜 AI 依據數據分析得出，僅供娛樂與參考，不代表醫療、法律或財務建議。請勿過度當真，帝國不對分析結果負法律責任。
+        🏛️ 帝國法律提醒：以上為萊娜 AI 多重數據分析，僅供帝國生活娛樂參考。不具備醫療、法律或專業財務建議效力，請勿過度當真。以誠為本，逆天改命。
       `;
 
       const prompt = `
@@ -164,6 +171,23 @@ export default function Butler() {
 
       const aiText = response.text || "萊娜暫時斷線了，請稍後再試。";
       setMessages(prev => [...prev, { role: 'butler', content: aiText }]);
+
+      // 記憶儲存邏輯：若對話包含重要個人資訊（簡單判斷長度或關鍵字），嘗試存入 Supabase
+      try {
+        if (userInput.length > 5 || userInput.includes('我') || userInput.includes('喜歡')) {
+          await supabase.from('user_memories').insert([
+            {
+              user_id: userId,
+              content: userInput,
+              ai_response: aiText,
+              created_at: new Date().toISOString()
+            }
+          ]);
+        }
+      } catch (memErr) {
+        console.error("Failed to save memory to Supabase:", memErr);
+      }
+
     } catch (error) {
       console.error("Gemini Error:", error);
       setMessages(prev => [...prev, { role: 'butler', content: "抱歉，帝國通訊出了點問題。大概是哪位子民又在偷懶了。\nSorry, communication error. Someone's slacking off." }]);
