@@ -1,0 +1,330 @@
+/* 全域樣式表，包含 Tailwind CSS 配置與自定義金色主題樣式。 */
+@import "tailwindcss";
+
+@theme {
+  --color-gold-primary: #D4AF37;
+  --color-gold-light: #F9E29C;
+  --color-gold-dark: #996515;
+  --color-black-deep: #0A0A0A;
+  --color-black-matte: #1A1A1A;
+}
+
+@layer base {
+  body {
+    @apply bg-black-deep text-white antialiased overflow-hidden;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    /* 防止手機端點擊延遲 */
+    touch-action: manipulation;
+    /* 任務一：徹底禁用系統預設長按行為 (Anti-Selection) */
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 輸入框排除 */
+  input, textarea, [contenteditable="true"] {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+  }
+
+  /* 防止 iOS 自動縮放：字體必須至少 16px */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+@layer utilities {
+  /* 支援動態視窗高度 (dvh) */
+  .h-dvh {
+    height: 100dvh;
+  }
+  .min-h-dvh {
+    min-height: 100dvh;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl;
+  }
+  
+  .gold-gradient-text {
+    @apply bg-gradient-to-b from-gold-light via-gold-primary to-gold-dark bg-clip-text text-transparent font-bold;
+  }
+
+  .gold-border-glow {
+    position: relative;
+    border-radius: 1rem;
+    background: linear-gradient(var(--color-black-matte), var(--color-black-matte)) padding-box,
+                linear-gradient(45deg, var(--color-gold-dark), var(--color-gold-light), var(--color-gold-dark)) border-box;
+    border: 2px solid transparent;
+    animation: borderRotate 4s linear infinite;
+  }
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(212, 175, 55, 0) 0%,
+      rgba(212, 175, 55, 0.2) 50%,
+      rgba(212, 175, 55, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 3s infinite;
+  }
+}
+
+@keyframes borderRotate {
+  0% { border-image-source: linear-gradient(0deg, var(--color-gold-dark), var(--color-gold-light), var(--color-gold-dark)); }
+  100% { border-image-source: linear-gradient(360deg, var(--color-gold-dark), var(--color-gold-light), var(--color-gold-dark)); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* TikTok style scroll container */
+.snap-container {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  height: 100dvh;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  background-color: black;
+}
+
+.snap-container::-webkit-scrollbar {
+  display: none;
+}
+
+.snap-item {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  height: 100dvh;
+  width: 100%;
+  position: relative;
+}
+
+@keyframes breathingGold {
+  0% { box-shadow: 0 0 5px rgba(212, 175, 55, 0.4); border-color: rgba(212, 175, 55, 0.4); }
+  50% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.8); border-color: rgba(212, 175, 55, 1); }
+  100% { box-shadow: 0 0 5px rgba(212, 175, 55, 0.4); border-color: rgba(212, 175, 55, 0.4); }
+}
+
+.breathing-gold {
+  animation: breathingGold 2s ease-in-out infinite;
+}
+
+@keyframes vibrate {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+.vibrate-on-click:active {
+  animation: vibrate 0.2s linear infinite;
+}
+
+/* RPG 公告欄美學重建 */
+.wood-board {
+  background-color: #2c1b0e;
+  background-image: 
+    linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)),
+    repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(0,0,0,0.1) 50px, rgba(0,0,0,0.1) 51px),
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+  box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+}
+
+.parchment {
+  background-color: #f2e3c9;
+  background-image: url("https://www.transparenttextures.com/patterns/paper-fibers.png");
+  border: 1px solid #d4af37;
+  position: relative;
+  box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+}
+
+.parchment-edge {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 15px solid transparent;
+  border-image: radial-gradient(circle, transparent 70%, rgba(60,40,20,0.4) 100%) 30;
+  filter: blur(2px);
+}
+
+.wax-seal {
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle at 30% 30%, #ff4444, #880000);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+  border: 2px solid #660000;
+  position: relative;
+}
+
+.wax-seal::after {
+  content: "LN";
+  color: rgba(0,0,0,0.3);
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.fire-stamp {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  font-family: 'serif';
+  font-weight: 900;
+  font-size: 24px;
+  color: rgba(139, 69, 19, 0.15);
+  transform: rotate(-15deg);
+  border: 3px solid rgba(139, 69, 19, 0.15);
+  padding: 2px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+.gold-title-3d {
+  color: #d4af37;
+  text-shadow: 
+    1px 1px 0px #996515,
+    2px 2px 0px #7a5110,
+    3px 3px 5px rgba(0,0,0,0.5);
+  letter-spacing: 0.1em;
+}
+
+.gold-flow-bg {
+  background: linear-gradient(90deg, #996515, #D4AF37, #F9E29C, #D4AF37, #996515);
+  background-size: 200% auto;
+  animation: goldFlow 3s linear infinite;
+}
+
+@keyframes goldFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+
+/* 聖旨級跑馬燈背景 */
+.marquee-dragon-bg {
+  background-image: linear-gradient(rgba(255,215,0,0.1), rgba(255,215,0,0.1)), url('dragon_texture.png');
+  background-repeat: repeat;
+  background-size: contain;
+  opacity: 0.15;
+}
+
+/* 三大身分標籤微光特效 */
+@keyframes glow-gold {
+  0%, 100% { box-shadow: 0 0 5px rgba(212, 175, 55, 0.4); border-color: rgba(212, 175, 55, 0.4); }
+  50% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.8); border-color: rgba(212, 175, 55, 1); }
+}
+
+@keyframes glow-silver-blue {
+  0%, 100% { box-shadow: 0 0 5px rgba(96, 165, 250, 0.3); border-color: rgba(96, 165, 250, 0.3); }
+  50% { box-shadow: 0 0 15px rgba(96, 165, 250, 0.6); border-color: rgba(96, 165, 250, 0.8); }
+}
+
+@keyframes glow-ceo {
+  0%, 100% { box-shadow: 0 0 3px rgba(255, 0, 255, 0.3); border-color: rgba(255, 0, 255, 0.2); }
+  50% { box-shadow: 0 0 10px rgba(255, 0, 255, 0.6); border-color: rgba(255, 0, 255, 0.5); }
+}
+
+.glow-lord {
+  animation: glow-gold 3s ease-in-out infinite;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+.glow-citizen {
+  animation: glow-silver-blue 4s ease-in-out infinite;
+  background: rgba(96, 165, 250, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+.glow-ceo {
+  animation: glow-ceo 2s ease-in-out infinite;
+  background: #2D004D;
+  color: #000000 !important;
+  border: 1px solid rgba(255, 0, 255, 0.3);
+  filter: drop-shadow(0 0 5px rgba(138, 43, 226, 0.8));
+}
+
+/* Grand Beneficence Bar Styles */
+.liquid-gold {
+  background: linear-gradient(
+    90deg,
+    #996515 0%,
+    #D4AF37 25%,
+    #F9E29C 50%,
+    #D4AF37 75%,
+    #996515 100%
+  );
+  background-size: 200% 100%;
+  animation: liquidGoldFlow 3s linear infinite;
+}
+
+@keyframes liquidGoldFlow {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.matte-gold-track {
+  background-color: #0f0c08;
+  background-image: 
+    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+    radial-gradient(circle at 50% 50%, #2a2010 0%, #0f0c08 100%);
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.8);
+}
+
+.gold-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.gold-shimmer::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.3) 45%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.3) 55%,
+    transparent 65%,
+    transparent 100%
+  );
+  transform: rotate(25deg);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) rotate(25deg); }
+  100% { transform: translateX(100%) rotate(25deg); }
+}
