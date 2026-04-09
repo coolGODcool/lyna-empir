@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "motion/react";
 import { Plus, X } from "lucide-react";
 
@@ -7,6 +7,24 @@ interface CreatePostProps {
 }
 
 export function CreatePost({ onClose }: CreatePostProps) {
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setVideoUrl(url);
+    }
+  };
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: "100%" }}
@@ -25,19 +43,53 @@ export function CreatePost({ onClose }: CreatePostProps) {
       </div>
 
       <div className="space-y-6">
-        <div className="aspect-video rounded-3xl border-2 border-dashed border-gold-primary/30 flex flex-col items-center justify-center gap-4 bg-gold-primary/5 hover:bg-gold-primary/10 transition-all cursor-pointer">
-          <Plus size={48} className="text-gold-primary/40" />
-          <p className="text-sm font-black text-gold-primary/60 uppercase tracking-widest">點擊上傳 .webm 高清影片</p>
+        <input 
+          type="file" 
+          accept="video/*" 
+          className="hidden" 
+          ref={fileInputRef} 
+          onChange={handleFileChange} 
+        />
+        <div 
+          className="aspect-video rounded-3xl border-2 border-dashed border-gold-primary/30 flex flex-col items-center justify-center gap-4 bg-gold-primary/5 hover:bg-gold-primary/10 transition-all cursor-pointer overflow-hidden relative"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {videoUrl ? (
+            <video 
+              src={videoUrl} 
+              className="w-full h-full object-cover"
+              autoPlay 
+              loop 
+              muted 
+              playsInline
+            />
+          ) : (
+            <>
+              <Plus size={48} className="text-gold-primary/40" />
+              <p className="text-sm font-black text-gold-primary/60 uppercase tracking-widest">點擊上傳 .webm 高清影片</p>
+            </>
+          )}
         </div>
 
         <div className="space-y-4">
           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">強制屬性標籤 (啟動導購分潤)</p>
           <div className="grid grid-cols-3 gap-3">
-            {['食', '衣', '住', '行', '育', '樂'].map(tag => (
-              <button key={tag} className="py-4 bg-white/5 border border-white/10 rounded-2xl text-lg font-black text-white hover:border-gold-primary hover:text-gold-primary transition-all">
-                {tag}
-              </button>
-            ))}
+            {['食', '衣', '住', '行', '育', '樂'].map(tag => {
+              const isSelected = selectedTags.includes(tag);
+              return (
+                <button 
+                  key={tag} 
+                  onClick={() => toggleTag(tag)}
+                  className={`py-4 border rounded-2xl text-lg font-black transition-all duration-300 ${
+                    isSelected 
+                      ? 'bg-gold-primary/20 border-gold-primary text-gold-primary shadow-[0_0_15px_rgba(212,175,55,0.6)]' 
+                      : 'bg-white/5 border-white/10 text-white hover:border-gold-primary/50 hover:text-gold-primary/80'
+                  }`}
+                >
+                  {tag}
+                </button>
+              );
+            })}
           </div>
         </div>
 
