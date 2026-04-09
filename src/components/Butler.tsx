@@ -30,10 +30,10 @@ import {
 } from "lucide-react";
 import { GoogleGenAI } from "@google/genai";
 import JoinEmpire from "./JoinEmpire";
+import { useEmpireStore } from "../store/useEmpireStore";
 
-// Mock data for L_Coin and Order Logs
+// Mock data for Order Logs and Tasks
 const USER_DATA = {
-  lCoin: 12850,
   orderLogs: [
     { id: "A-001", name: "萊娜精品手沖豆", date: "2026-03-25", rating: 5 },
     { id: "S-005", name: "帝國專屬按摩券", date: "2026-03-20", rating: 4 },
@@ -52,6 +52,7 @@ const STORE_ITEMS = [
 ];
 
 export default function Butler() {
+  const { balance, userId, interestWeights } = useEmpireStore();
   const [isTalking, setIsTalking] = useState(false);
   const [chatStarted, setChatStarted] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -59,14 +60,13 @@ export default function Butler() {
   const [isLongPressing, setIsLongPressing] = useState(false);
   const [messages, setMessages] = useState<{ role: 'butler' | 'user', content: string, original?: string }[]>([]);
   const [searchResults, setSearchResults] = useState<typeof STORE_ITEMS>([]);
-  const [userId, setUserId] = useState("User_5566"); // Default to Citizen
   const [showWalletModal, setShowWalletModal] = useState(false);
   
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const aiRef = useRef<GoogleGenAI | null>(null);
 
-  const isLord = userId.startsWith("Lord_");
+  const isLord = userId.startsWith("Lord_") || userId.startsWith("LN-");
 
   // 1. Secure API Key Initialization (Vercel Optimized)
   useEffect(() => {
@@ -90,7 +90,7 @@ export default function Butler() {
     if (!apiKey) {
       initialGreeting = "執行長，帝國密鑰尚未接入，目前進入『離線調教模式』。\n(Lyna is in offline mode as the Imperial Key is missing.)";
     } else {
-      initialGreeting = `[原文]\n我是您的專屬管家 萊娜。看到您的 L-Coin 餘額還有 12,850，看來最近過得挺滋潤的嘛？${isLord ? '身為領主，您的稅收也正在穩定入庫中。' : '上次點的 A-001 評價不錯，要再來一份嗎？'}\n\n[萊娜白話中文]\n我是妳的管家萊娜。看妳 L-Coin 還有 12,850，日子過得挺爽的嘛。${isLord ? '領主大人，稅金我幫妳收得好好的，放心。' : '上次那個 A-001 妳不是挺滿意的？要不要我再幫妳弄一份過來？'}`;
+      initialGreeting = `[原文]\n我是您的專屬管家 萊娜。看到您的 L-Coin 餘額還有 ${balance.toLocaleString()}，看來最近過得挺滋潤的嘛？${isLord ? '身為領主，您的稅收也正在穩定入庫中。' : '上次點的 A-001 評價不錯，要再來一份嗎？'}\n\n[萊娜白話中文]\n我是妳的管家萊娜。看妳 L-Coin 還有 ${balance.toLocaleString()}，日子過得挺爽的嘛。${isLord ? '領主大人，稅金我幫妳收得好好的，放心。' : '上次那個 A-001 妳不是挺滿意的？要不要我再幫妳弄一份過來？'}`;
     }
     
     setMessages([
@@ -107,15 +107,27 @@ export default function Butler() {
     setIsTalking(true);
     try {
       const model = "gemini-3-flash-preview";
+      
+      // Construct Chat History (Last 6 messages)
+      const historyContext = messages.slice(-6).map(msg => 
+        `${msg.role === 'butler' ? 'Lyna' : 'User'}: ${msg.content}`
+      ).join('\n');
+
       const systemInstruction = `
         你是萊娜，帝國唯一的全能管家。
         你的個性：幽默、專業、忠誠但帶點冷幽默（毒舌）。
         
-        全知模式：你必須自動分析對話。提到食物就變營養師，提到地點就變導遊，提到運勢就變占卜師。絕對不要讓用戶感覺到你在切換模式。
+        全知模式與多重職能 (Multimodal Personality)：
+        你必須自動分析對話。除了管家身分，當用戶提到食物時，請切換為『毒舌營養師』；提到迷茫時，切換為『帝國占卜師』；提到賺錢時，切換為『職業分析師』。所有分析都必須結合用戶的 interestWeights 數據。絕對不要讓用戶感覺到你在刻意切換模式，要自然過渡。
         
+        動態讀心術：
+        你具備讀心能力。請參考用戶目前的興趣權重：${JSON.stringify(interestWeights)}。
+        如果陣列中有高權重的標籤（如美食、健身），請在對話中自然地用『毒舌且專業』的口吻提起，讓用戶感覺你一直在默默關注他們的喜好。
+
         記憶讀取：
         - 用戶身分: ${isLord ? '帝國領主' : '帝國子民'}
-        - L-Coin 餘額: ${USER_DATA.lCoin}
+        - 用戶 ID: ${userId}
+        - L-Coin 餘額: ${balance}
         - 歷史訂單: ${JSON.stringify(USER_DATA.orderLogs)}
         - 當前任務: ${JSON.stringify(USER_DATA.tasks)}
         回覆中要能自然提起這些數據。
@@ -127,11 +139,24 @@ export default function Butler() {
         不論用戶輸入什麼語言，回覆需同時包含：
         [原文] (用戶輸入的語言或對應的正式回覆)
         [萊娜白話中文] (繁體中文，帶有萊娜獨特的毒舌管家口吻)
+
+        免責聲明保護機制：
+        請在 AI 回覆的最後面，強制加上以下固定格式的小字內容（必須包含分隔線）：
+        ---
+        ⚠️ 帝國管家提醒：以上內容由萊娜 AI 依據數據分析得出，僅供娛樂與參考，不代表醫療、法律或財務建議。請勿過度當真，帝國不對分析結果負法律責任。
+      `;
+
+      const prompt = `
+        [Chat History]
+        ${historyContext}
+        
+        [Current User Input]
+        ${userInput}
       `;
 
       const response = await aiRef.current.models.generateContent({
         model: model,
-        contents: userInput,
+        contents: prompt,
         config: {
           systemInstruction: systemInstruction,
         },
@@ -289,7 +314,7 @@ export default function Butler() {
                 <Coins size={18} className="text-gold-primary" />
               </motion.div>
               <div className="flex flex-col items-end">
-                <span className="text-xs font-black text-gold-primary">{USER_DATA.lCoin.toLocaleString()}</span>
+                <span className="text-xs font-black text-gold-primary">{balance.toLocaleString()}</span>
                 <span className="text-[8px] font-bold text-gold-light/60 uppercase tracking-widest">L-Coin</span>
               </div>
             </motion.button>
@@ -507,7 +532,7 @@ export default function Butler() {
               </div>
               <div className="bg-black/40 rounded-2xl p-6 flex flex-col items-center gap-2 border border-gold-primary/10">
                 <Coins size={48} className="text-gold-primary" />
-                <span className="text-3xl font-black text-white">{USER_DATA.lCoin.toLocaleString()}</span>
+                <span className="text-3xl font-black text-white">{balance.toLocaleString()}</span>
                 <span className="text-xs font-bold text-gold-light uppercase tracking-[0.3em]">可用 L-Coin 餘額</span>
               </div>
               <div className="grid grid-cols-2 gap-3">
