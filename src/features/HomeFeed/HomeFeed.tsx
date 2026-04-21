@@ -81,7 +81,7 @@ export function HomeFeed({
             }
             
             const video = entry.target.querySelector('video');
-            if (video && (window as any).isUserPaused) {
+            if (video && useEmpireStore.getState().isPaused) {
               video.pause();
             }
           }

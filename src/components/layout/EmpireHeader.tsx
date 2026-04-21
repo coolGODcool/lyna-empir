@@ -117,7 +117,6 @@ export function EmpireHeader({
                   resetStealthTimer(true);
                   const nextPaused = !isPaused;
                   setIsPaused(nextPaused);
-                  (window as any).isUserPaused = nextPaused;
                   setFeedbackType(nextPaused ? 'pause' : 'play');
                   setTimeout(() => setFeedbackType(null), 500);
                 }}

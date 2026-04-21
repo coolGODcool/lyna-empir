@@ -26,6 +26,7 @@ import SupportPanel from "./components/SupportPanel";
 // Hooks & Store
 import { useEmpireStore } from "./store/useEmpireStore";
 import { useStealthTimer } from "./hooks/useStealthTimer";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // Types & Constants
 import { Tab, OrderData } from "./types";
@@ -122,6 +123,7 @@ export default function App() {
       />
 
       {/* 2. Main Content Switcher */}
+      <ErrorBoundary>
       <main className={`h-full w-full transition-all duration-300 ${isImmersivePanelOpen ? 'pb-[env(safe-area-inset-bottom,20px)]' : 'pb-[120px]'}`} style={{ opacity: 1 }}>
         <AnimatePresence mode="wait">
           {activeTab === "home" && (
@@ -174,6 +176,7 @@ export default function App() {
           )}
         </AnimatePresence>
       </main>
+      </ErrorBoundary>
 
       {/* 3. Global Overlays (Zustand Controlled) */}
       <CeoMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
