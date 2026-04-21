@@ -22,10 +22,12 @@ import BountyPanel from "./components/BountyPanel";
 import LevelUpAnimation from "./components/LevelUpAnimation";
 import CommentPanel from "./components/CommentPanel";
 import SupportPanel from "./components/SupportPanel";
+import CreatorRevenuePanel from "./components/CreatorRevenuePanel";
 
 // Hooks & Store
 import { useEmpireStore } from "./store/useEmpireStore";
 import { useStealthTimer } from "./hooks/useStealthTimer";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // Types & Constants
 import { Tab, OrderData } from "./types";
@@ -65,6 +67,7 @@ export default function App() {
     showLevelUp,
     showOrderPanel,
     showSupportPanel,
+    showCreatorRevenue,
     interestWeights
   } = useEmpireStore();
 
@@ -73,7 +76,7 @@ export default function App() {
 
   // Immersive Logic
   const isImmersivePanelOpen = showComments || showBounty || isMenuOpen || isGameActive;
-  const isOverlayPanelOpen = showOrderPanel || showSupportPanel;
+  const isOverlayPanelOpen = showOrderPanel || showSupportPanel || showCreatorRevenue;
   const isPanelOpen = isImmersivePanelOpen || isOverlayPanelOpen;
   const shouldShowUI = !isPanelOpen && !isKeyboardVisible && isUiVisible;
 
@@ -122,6 +125,7 @@ export default function App() {
       />
 
       {/* 2. Main Content Switcher */}
+      <ErrorBoundary>
       <main className={`h-full w-full transition-all duration-300 ${isImmersivePanelOpen ? 'pb-[env(safe-area-inset-bottom,20px)]' : 'pb-[120px]'}`} style={{ opacity: 1 }}>
         <AnimatePresence mode="wait">
           {activeTab === "home" && (
@@ -174,6 +178,7 @@ export default function App() {
           )}
         </AnimatePresence>
       </main>
+      </ErrorBoundary>
 
       {/* 3. Global Overlays (Zustand Controlled) */}
       <CeoMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
@@ -197,10 +202,12 @@ export default function App() {
         onConfirm={(amount) => setBalance(prev => prev - amount)}
       />
 
-      <LevelUpAnimation 
+      <LevelUpAnimation
         levelName="榮耀晉升：銀牌說客"
         commissionRate="0.6%"
       />
+
+      <CreatorRevenuePanel />
 
       {/* 4. Bottom Navigation */}
       <BottomNav 

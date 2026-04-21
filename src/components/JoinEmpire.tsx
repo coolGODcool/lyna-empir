@@ -5,6 +5,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Check, Info, Calculator, Store, Phone, MapPin, Clock, Image as ImageIcon, FileText, RotateCcw } from "lucide-react";
+import { supabase } from "../lib/supabaseClient";
 
 interface JoinEmpireProps {
   onClose: () => void;
@@ -87,13 +88,34 @@ const JoinEmpire = ({ onClose, userId }: JoinEmpireProps) => {
     return total.toFixed(1);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.agreed) return;
     setIsStamping(true);
-    
-    // 模擬壓印震動與延遲
+
     if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-    
+
+    try {
+      await supabase.from('merchant_applications').insert([{
+        store_name: formData.storeName,
+        category: formData.category,
+        operating_days: formData.operatingDays,
+        hours: formData.hours,
+        phone: formData.phone,
+        address: formData.address,
+        business_district: formData.businessDistrict === "其他 (自定義)" ? formData.customDistrict : formData.businessDistrict,
+        description: formData.description,
+        image_url: formData.imageUrl,
+        expected_uid: formData.expectedUid,
+        features: formData.features,
+        privileges: formData.privileges,
+        base_fee_rate: formData.features.lcoinPrivilege ? 4.0 : 6.0,
+        total_fee_rate: parseFloat(calculateTax()),
+        agreed: formData.agreed,
+      }]);
+    } catch {
+      // 離線或 DB 未設置時仍繼續流程
+    }
+
     setTimeout(() => {
       setStep("success");
       setIsStamping(false);
@@ -441,19 +463,6 @@ const JoinEmpire = ({ onClose, userId }: JoinEmpireProps) => {
                     </div>
                   </div>
 
-                  <div className="mt-4 p-4 bg-white/40 border border-[#d4af37]/30 rounded-lg space-y-2">
-                    <p className="text-[11px] font-black text-[#5d4037] flex items-center gap-2">
-                      <Calculator size={14} className="text-[#d4af37]" />
-                      提現出口匯率 (L-Coin Exit Rate)
-                    </p>
-                    <p className="text-[10px] text-[#8d6e63] leading-relaxed">
-                      領主結算權利：領主可隨時申請將帳戶內累積之 L-Coin 結算為新台幣，結算匯率統一為 <span className="font-black text-[#5d4037]">1 : 0.9</span>（例：1,000 L-Coin 可換回 900 元新台幣）。
-                    </p>
-                    <p className="text-[9px] font-bold text-[#5d4037] italic opacity-80 pt-1 border-t border-[#d4af37]/10">
-                      本帝國透過入口 1.05 與出口 0.9 之匯率調控，確保領地生態系之價值穩定與營運維護。
-                    </p>
-                  </div>
-
                   <div className="mt-4 p-3 bg-red-900/5 border border-red-900/20 rounded-lg">
                     <p className="text-[10px] font-bold text-red-900 leading-relaxed flex gap-2">
                       <Info size={14} className="shrink-0" />
@@ -491,9 +500,6 @@ const JoinEmpire = ({ onClose, userId }: JoinEmpireProps) => {
                 </div>
 
                 <div className="flex flex-col items-center gap-4">
-                  <p className="text-xs font-black text-[#5d4037] tracking-widest">
-                    提現匯率：<span className="text-lg text-[#5d4037]">1 : 0.9</span>
-                  </p>
                   <div className="relative">
                     <motion.button 
                       animate={isStamping ? {
@@ -563,9 +569,9 @@ const JoinEmpire = ({ onClose, userId }: JoinEmpireProps) => {
                         <section className="space-y-2">
                           <p className="text-sm font-black text-[#d4af37]">第二條：規費與金流結算</p>
                           <p>● 系統使用費：基礎服務規費為 6.0%（包含 AI 全球語系選單、雲端語音報單、領主戰情室服務）。</p>
-                          <p>● L-Coin 獎勵匯率：為鼓勵貨幣循環，凡子民使用 L-Coin 支付之交易，該筆規費自動調降至 4.0%。</p>
+                          <p>● L-Coin 積分優惠：為鼓勵使用 L-Coin 積分支付，凡子民以 L-Coin 結帳之交易，該筆規費自動調降至 4.0%。</p>
                           <p>● 第三方金流成本：使用 LINE Pay、信用卡等產生之金流平台手續費（約 3%-3.5%）由領主自行承擔。</p>
-                          <p>● 提現出口匯率：領主申請將累積之 L-Coin 兌換為新台幣（TWD）時，統一採 1 : 0.9 之出口匯率結算。</p>
+                          <p>● L-Coin 為平台內部積分，可用於抵扣規費及消費優惠，不作為法定貨幣兌換工具。</p>
                         </section>
 
                         <section className="space-y-2">

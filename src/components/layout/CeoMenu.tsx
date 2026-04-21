@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X } from "lucide-react";
+import { X, TrendingUp } from "lucide-react";
 import { useEmpireStore } from "../../store/useEmpireStore";
 
 interface CeoMenuProps {
@@ -13,7 +13,8 @@ export function CeoMenu({ isOpen, onClose }: CeoMenuProps) {
     showMarquee,
     setShowMarquee,
     fixNavbar,
-    setFixNavbar
+    setFixNavbar,
+    setShowCreatorRevenue
   } = useEmpireStore();
 
   return (
@@ -75,7 +76,14 @@ export function CeoMenu({ isOpen, onClose }: CeoMenuProps) {
               </div>
             </div>
 
-            <div className="pt-8 mt-auto border-t border-white/5">
+            <div className="pt-8 mt-auto border-t border-white/5 space-y-3">
+              <button
+                onClick={() => { setShowCreatorRevenue(true); onClose(); }}
+                className="w-full py-3 bg-gold-primary/10 border border-gold-primary/30 rounded-xl text-[10px] font-black text-gold-primary uppercase tracking-widest hover:bg-gold-primary/20 transition-all flex items-center justify-center gap-2"
+              >
+                <TrendingUp size={14} />
+                創作者收益儀表板
+              </button>
               <button className="w-full py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white/40 uppercase tracking-widest hover:text-gold-primary hover:border-gold-primary transition-all">
                 登出帝國系統
               </button>

@@ -6,6 +6,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Play, Pause } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { useEmpireStore } from "../store/useEmpireStore";
 
 interface VideoPlayerProps {
   src: string;
@@ -28,8 +29,7 @@ export default function VideoPlayer({ src, poster, isActive, isPaused = false, m
       const playPromise = video.play();
       if (playPromise !== undefined) {
         playPromise.then(() => {
-          // 如果在加載完畢前用戶點了暫停，立即追回
-          if ((window as any).isUserPaused) {
+          if (useEmpireStore.getState().isPaused) {
             video.pause();
           }
         }).catch(err => {

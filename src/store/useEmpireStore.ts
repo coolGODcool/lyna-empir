@@ -26,6 +26,7 @@ interface EmpireState {
   showSupportPanel: boolean;
   showComments: boolean;
   showLevelUp: boolean;
+  showCreatorRevenue: boolean;
   
   // 演算法權重
   interestWeights: Record<string, number>;
@@ -46,6 +47,7 @@ interface EmpireState {
   setShowSupportPanel: (show: boolean) => void;
   setShowComments: (show: boolean) => void;
   setShowLevelUp: (show: boolean) => void;
+  setShowCreatorRevenue: (show: boolean) => void;
   updateWeights: (tags: string[]) => void;
 }
 
@@ -69,6 +71,7 @@ export const useEmpireStore = create<EmpireState>((set) => ({
   showSupportPanel: false,
   showComments: false,
   showLevelUp: false,
+  showCreatorRevenue: false,
   
   interestWeights: {},
 
@@ -93,6 +96,7 @@ export const useEmpireStore = create<EmpireState>((set) => ({
   setShowSupportPanel: (show) => set({ showSupportPanel: show }),
   setShowComments: (show) => set({ showComments: show }),
   setShowLevelUp: (show) => set({ showLevelUp: show }),
+  setShowCreatorRevenue: (show) => set({ showCreatorRevenue: show }),
   updateWeights: (tags) => set((state) => {
     const next = { ...state.interestWeights };
     tags.forEach(tag => {

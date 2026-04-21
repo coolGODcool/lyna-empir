@@ -55,7 +55,6 @@ export function useEmpireGestures({
             resetStealthTimer(true);
             setIsPaused(!useEmpireStore.getState().isPaused);
             const nextPaused = useEmpireStore.getState().isPaused;
-            (window as any).isUserPaused = nextPaused;
             setFeedbackType(nextPaused ? 'pause' : 'play');
             setTimeout(() => setFeedbackType(null), 500);
           } else if (finalCount === 3) {
