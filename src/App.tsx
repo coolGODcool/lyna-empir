@@ -22,6 +22,7 @@ import BountyPanel from "./components/BountyPanel";
 import LevelUpAnimation from "./components/LevelUpAnimation";
 import CommentPanel from "./components/CommentPanel";
 import SupportPanel from "./components/SupportPanel";
+import CreatorRevenuePanel from "./components/CreatorRevenuePanel";
 
 // Hooks & Store
 import { useEmpireStore } from "./store/useEmpireStore";
@@ -66,6 +67,7 @@ export default function App() {
     showLevelUp,
     showOrderPanel,
     showSupportPanel,
+    showCreatorRevenue,
     interestWeights
   } = useEmpireStore();
 
@@ -74,7 +76,7 @@ export default function App() {
 
   // Immersive Logic
   const isImmersivePanelOpen = showComments || showBounty || isMenuOpen || isGameActive;
-  const isOverlayPanelOpen = showOrderPanel || showSupportPanel;
+  const isOverlayPanelOpen = showOrderPanel || showSupportPanel || showCreatorRevenue;
   const isPanelOpen = isImmersivePanelOpen || isOverlayPanelOpen;
   const shouldShowUI = !isPanelOpen && !isKeyboardVisible && isUiVisible;
 
@@ -200,10 +202,12 @@ export default function App() {
         onConfirm={(amount) => setBalance(prev => prev - amount)}
       />
 
-      <LevelUpAnimation 
+      <LevelUpAnimation
         levelName="榮耀晉升：銀牌說客"
         commissionRate="0.6%"
       />
+
+      <CreatorRevenuePanel />
 
       {/* 4. Bottom Navigation */}
       <BottomNav 
